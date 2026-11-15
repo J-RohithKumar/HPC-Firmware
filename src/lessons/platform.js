@@ -48,7 +48,7 @@
 
   /* =============== Lesson: power-on =============== */
   LESSONS.push({
-    id: 'power-on', cat: 'platform', title: 'Server power-on', subtitle: 'From AC plug-in to OS boot',
+    id: "power-on", cat: "hardware", ord: 50, mins: 12, tags: ["power", "standby", "cpld", "sequencing", "post", "boot"], prereq: ["boot-fundamentals"], title: 'Server power-on', subtitle: 'From AC plug-in to OS boot',
     keywords: 'standby cpld pch bios post reset vector power sequencing',
     intro: 'Plug in the server and press the power button. Watch who wakes up first: the BMC lives on <b>standby power</b> and is already running long before the CPU does.',
     overview: [
@@ -118,7 +118,7 @@
   const tok = 'X-Auth-Token';
   const hdrs = (extra) => Object.assign({ Host: 'bmc', [tok]: 'e3cR9...k2' }, extra);
   LESSONS.push({
-    id: 'openbmc', cat: 'platform', title: 'Inside OpenBMC', subtitle: 'Redfish → D-Bus → kernel → hardware',
+    id: "openbmc", cat: "ilo", ord: 230, mins: 15, tags: ["openbmc", "dbus", "bmcweb", "ipmid", "linux", "daemons"], prereq: ["ilo-architecture", "embedded-linux"], title: 'Inside OpenBMC', subtitle: 'Redfish → D-Bus → kernel → hardware',
     keywords: 'dbus bmcweb ipmid entity-manager dbus-sensors phosphor systemd',
     intro: 'OpenBMC is a Linux distribution for BMCs. The key idea: <b>every daemon talks over D-Bus</b>. The Redfish server and the IPMI server are just two front doors to the same objects.',
     overview: [
@@ -190,7 +190,7 @@
   };
   window.FX.dhcp = dhcp;
   LESSONS.push({
-    id: 'backplane', cat: 'platform', title: 'Chassis control backplane', subtitle: 'Chassis manager ↔ blade BMCs',
+    id: "backplane", cat: "hardware", ord: 60, mins: 12, tags: ["chassis", "backplane", "blade", "hot-swap", "fru", "ipmb"], prereq: ["power-on"], title: 'Chassis control backplane', subtitle: 'Chassis manager ↔ blade BMCs',
     keywords: 'chassis controller blade backplane presence hot swap power budget cray ex cc nc onboard administrator',
     intro: 'In a multi-node chassis no blade powers itself on alone. A <b>chassis manager</b> watches presence pins, checks the power budget, enables 12 V to the slot and controls the fans. All of this runs over the <b>control backplane</b>.',
     overview: [

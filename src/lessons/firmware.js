@@ -21,7 +21,7 @@
   })();
   const sr = (st, d) => spi(0x05, 'READ STATUS REGISTER', null, 0, { v: st, b: [st === 'WIP=1' ? 0x03 : 0x00] }, 'Status (MISO)', d);
   LESSONS.push({
-    id: 'bmc-update', cat: 'firmware', title: 'Flashing BMC firmware', subtitle: 'Redfish UpdateService → signed image → SPI flash',
+    id: "bmc-update", cat: "firmware", ord: 250, mins: 18, tags: ["firmware", "update", "redfish", "spi", "flash", "dual-bank", "signature"], prereq: ["redfish", "power-on"], title: 'Flashing BMC firmware', subtitle: 'Redfish UpdateService → signed image → SPI flash',
     keywords: 'firmware update redfish updateservice multipart signature verify spi flash erase program dual bank abr golden image reboot task',
     intro: 'Updating BMC firmware means: upload an image, <b>prove it is genuine</b>, write it to flash <b>without bricking the board</b>, and reboot into it. Watch each step down to the SPI erase/program commands.',
     overview: [
@@ -77,7 +77,7 @@
 
   /* =============== BIOS flash via BMC =============== */
   LESSONS.push({
-    id: 'bios-update', cat: 'firmware', title: 'Flashing BIOS via the BMC', subtitle: 'BMC takes over the host SPI flash',
+    id: "bios-update", cat: "firmware", ord: 260, mins: 15, tags: ["bios", "uefi", "flash", "spi", "mux", "capsule", "recovery"], prereq: ["bmc-update", "power-on"], title: 'Flashing BIOS via the BMC', subtitle: 'BMC takes over the host SPI flash',
     keywords: 'bios uefi flash spi mux ownership host off capsule rom update recovery',
     intro: 'The BIOS lives on a SPI flash normally owned by the PCH. To update it out-of-band, the BMC <b>takes the flash away from the host</b> through a mux, rewrites it and gives it back.',
     overview: [
@@ -124,7 +124,7 @@
   /* =============== PLDM firmware update over MCTP =============== */
   const P = (dst, src, req, iid, cmd, name, cc, data, to) => [M.mctp(dst, src, to == null ? (req ? 1 : 0) : to, 1), M.pldm(req, iid, 5, cmd, name, cc, data)];
   LESSONS.push({
-    id: 'pldm-fwup', cat: 'firmware', title: 'Device firmware: PLDM over MCTP', subtitle: 'BMC updates a NIC/GPU/drive in-band',
+    id: "pldm-fwup", cat: "firmware", ord: 270, mins: 15, tags: ["pldm", "mctp", "eid", "firmware-update", "nic", "gpu"], prereq: ["bmc-update", "i2c-sensors"], title: 'Device firmware: PLDM over MCTP', subtitle: 'BMC updates a NIC/GPU/drive in-band',
     keywords: 'pldm type 5 dsp0267 mctp dsp0236 eid request update pass component table request firmware data activate nic gpu',
     intro: 'How does the BMC update a NIC, GPU or drive? Through the DMTF standard pair <b>MCTP</b> (a tiny network inside the server) and <b>PLDM Type 5</b> (firmware update). Notice the twist: the <b>device pulls</b> the image from the BMC in chunks.',
     overview: [

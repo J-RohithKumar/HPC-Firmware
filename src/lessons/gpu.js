@@ -8,7 +8,7 @@
   const P = (dst, src, req, iid, cmd, name, data, to) => [M.mctp(dst, src, to == null ? (req ? 1 : 0) : to, 2), M.pldm(req, iid, 5, cmd, name, 0, data)];
 
   LESSONS.push({
-    id: 'hmc-gpu', cat: 'gpu', title: 'HMC: GPU baseboard controller', subtitle: 'Host BMC ↔ HMC ↔ 8 GPUs (XD685-class)',
+    id: "hmc-gpu", cat: "xd685", ord: 300, mins: 15, tags: ["hmc", "gpu", "baseboard", "hgx", "xd685", "aggregation", "erot", "fwpkg"], prereq: ["xd685-architecture", "pldm-fwup"], title: 'HMC: GPU baseboard controller', subtitle: 'Host BMC ↔ HMC ↔ 8 GPUs (XD685-class)',
     keywords: 'hmc hardware management controller hgx gpu baseboard xd685 cray redfish aggregation erot fwpkg nvswitch power limit telemetry',
     intro: 'A multi-GPU server has <b>two</b> management controllers: the <b>system BMC</b> on the motherboard, and the <b>HMC</b> on the GPU baseboard. The HMC looks after the GPUs, switches and retimers. The BMC is the single front door and passes GPU requests through to the HMC.',
     overview: [

@@ -7,7 +7,7 @@
   const pout = 0xfabc, pec1 = B.crc8([0xb0, 0x96, 0xb1, pout & 255, pout >> 8]);
   const tmp = 0x1f << 11 | 0x40; // placeholder not used
   LESSONS.push({
-    id: 'i2c-sensors', cat: 'buses', title: 'Sensors: I²C & PMBus', subtitle: 'How the BMC reads temps, power, FRU',
+    id: "i2c-sensors", cat: "protocols", ord: 100, mins: 12, tags: ["i2c", "smbus", "pmbus", "sensors", "fru", "mux", "linear11"], prereq: ["electronics-101"], title: 'Sensors: I²C & PMBus', subtitle: 'How the BMC reads temps, power, FRU',
     keywords: 'i2c smbus pmbus linear11 mux pca9548 tmp75 fru eeprom fan pwm pec',
     intro: 'Almost every sensor in a server hangs off a slow two-wire bus: <b>I²C</b> (and its stricter cousins SMBus/PMBus). The BMC is the bus controller and reads each chip by its address.',
     overview: [
@@ -57,7 +57,7 @@
   const kc = (reg, val, name, d) => F((reg === 'C' ? 'CMD 0xCA3 ← ' : 'DATA 0xCA2 ← ') + name, hx(val), [val], d);
   const kd = (val, name, d) => F('DATA 0xCA2 → ' + name, hx(val), [val], d);
   LESSONS.push({
-    id: 'kcs', cat: 'buses', title: 'In-band IPMI (KCS)', subtitle: 'Host OS → BMC without a network',
+    id: "kcs", cat: "protocols", ord: 110, mins: 10, tags: ["kcs", "lpc", "espi", "ipmi", "in-band", "host-interface"], prereq: ["i2c-sensors"], title: 'In-band IPMI (KCS)', subtitle: 'Host OS → BMC without a network',
     keywords: 'kcs lpc espi ipmi_si /dev/ipmi0 ipmitool get device id in-band host interface',
     intro: 'Run <code>ipmitool mc info</code> on the server itself and no network packet is sent. The request goes through I/O ports <b>0xCA2/0xCA3</b> straight into the BMC: the <b>KCS</b> interface.',
     overview: [
@@ -113,7 +113,7 @@
     ]);
   };
   LESSONS.push({
-    id: 'ncsi', cat: 'buses', title: 'Shared NIC: NC-SI', subtitle: 'BMC traffic through the host\'s NIC',
+    id: "ncsi", cat: "protocols", ord: 120, mins: 10, tags: ["ncsi", "rbt", "shared-nic", "sideband", "rmii"], prereq: ["i2c-sensors", "networking-101"], title: 'Shared NIC: NC-SI', subtitle: 'BMC traffic through the host\'s NIC',
     keywords: 'ncsi rbt rmii sideband shared lom ilo shared network port 88f8',
     intro: 'Many servers let the BMC use the <b>host\'s</b> network port instead of a dedicated one. The BMC and NIC talk over a sideband called <b>NC-SI</b>: the BMC configures the NIC, and the NIC forwards packets addressed to the BMC\'s MAC.',
     overview: [

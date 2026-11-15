@@ -3,7 +3,7 @@
   const $ = s => document.querySelector(s);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const SVGNS = 'http://www.w3.org/2000/svg';
-  const CATS = [['all', 'All'], ['platform', 'Platform'], ['buses', 'Buses'], ['gpu', 'GPU'], ['mgmt', 'Mgmt'], ['firmware', 'Firmware']];
+  const CATS = [['all', 'All'], ['foundations', 'Foundations'], ['hardware', 'Hardware'], ['protocols', 'Protocols'], ['ilo', 'iLO'], ['firmware', 'Firmware'], ['xd685', 'XD685 / Cray']];
   const PALETTE = ['#2563eb', '#16a34a', '#f59e0b', '#8b5cf6', '#ef4444', '#0891b2', '#db2777', '#65a30d', '#475569'];
   const TYPE = {
     bmc: ['BMC', '#1d4ed8'], cpu: ['CPU', '#7c3aed'], flash: ['SPI FLASH', '#d97706'], psu: ['PSU', '#dc2626'], cpld: ['CPLD', '#0891b2'],
@@ -17,6 +17,7 @@
     lan: ['#16a34a', '', 'Ethernet'], i2c: ['#ea580c', '6 4', 'I²C / SMBus'], spi: ['#d97706', '2 3', 'SPI'], power: ['#dc2626', '', 'Power'],
     gpio: ['#6b7280', '1 4', 'GPIO / signal'], pcie: ['#7c3aed', '', 'PCIe'], espi: ['#4f46e5', '8 3', 'eSPI / LPC'], dbus: ['#0369a1', '4 3', 'D-Bus (software)'],
     ncsi: ['#0d9488', '8 3 2 3', 'NC-SI (RBT)'], usb: ['#475569', '5 2', 'USB'], sw: ['#94a3b8', '3 3', 'Software call'], mctp: ['#be185d', '6 2', 'MCTP'],
+    wire: ['#334155', '', 'Wire / cable'], trace: ['#d97706', '', 'PCB trace'], opt: ['#eab308', '', 'Optical fiber'], rf: ['#c026d3', '2 6', 'Wireless / sideband'],
   };
   const LESSONS = window.LESSONS;
   LESSONS.forEach(l => {
@@ -63,14 +64,26 @@
   }
   function renderList() {
     const q = st.q.toLowerCase();
-    const items = LESSONS.filter(l => (st.cat === 'all' || l.cat === st.cat) && (!q || (l.title + ' ' + l.subtitle + ' ' + (l.keywords || '')).toLowerCase().includes(q)));
+    const hay = l => (l.title + ' ' + l.subtitle + ' ' + (l.keywords || '') + ' ' + (l.tags || []).join(' ')).toLowerCase();
+    const items = LESSONS.filter(l => (st.cat === 'all' || l.cat === st.cat) && (!q || hay(l).includes(q))).sort((a, b) => (a.ord || 999) - (b.ord || 999));
     const curStep = st.lesson && st.cur >= 0 ? st.lesson.msgs[st.cur].step : -1;
-    $('#list').innerHTML = items.map(l => {
+    const item = l => {
       const on = st.lesson === l;
-      let html = `<div class="les ${on ? 'on' : ''}" data-l="${l.id}"><span class="dot ${st.done[l.id] ? 'done' : ''}"></span><div style="flex:1"><div class="t">${esc(l.title)}</div><div class="s">${esc(l.subtitle)}</div></div><span>${on ? '▾' : '›'}</span></div>`;
+      const need = (l.prereq || []).filter(p => !st.done[p]).length;
+      let html = `<div class="les ${on ? 'on' : ''}" data-l="${l.id}"><span class="dot ${st.done[l.id] ? 'done' : ''}"></span><div style="flex:1"><div class="t">${esc(l.title)}${need ? '<span class="pre">PREREQ</span>' : ''}</div><div class="s">${esc(l.subtitle)}${l.mins ? ' · ' + l.mins + ' min' : ''}</div></div><span>${on ? '▾' : '›'}</span></div>`;
       if (on) html += `<div class="steps">` + l.steps.map((s, i) => `<div class="stp ${i === curStep ? 'on' : i < curStep ? 'past' : ''}" data-s="${i}"><span class="n">${i + 1}</span><div><div class="t">${esc(s.title)}</div><div class="s">${esc(s.sub || '')}</div></div></div>`).join('') + `</div>`;
       return html;
-    }).join('') || '<p class="muted" style="padding:10px">No lessons match.</p>';
+    };
+    let html = '';
+    if (st.cat === 'all' && !q) {
+      for (const [k, name] of CATS.slice(1)) {
+        const g = items.filter(l => l.cat === k);
+        if (!g.length) continue;
+        const dn = g.filter(l => st.done[l.id]).length;
+        html += `<div class="lgroup">${name}<span>${dn}/${g.length}</span></div>` + g.map(item).join('');
+      }
+    } else html = items.map(item).join('');
+    $('#list').innerHTML = html || '<p class="muted" style="padding:10px">No lessons match.</p>';
     const n = Object.keys(st.done).filter(k => st.done[k]).length;
     $('#progress').textContent = `${n}/${LESSONS.length} done`;
   }
@@ -88,10 +101,27 @@
     const lg = el('g', {}, svg);
     l.links.forEach((k, i) => {
       const a = l.nodeMap[k.a], b = l.nodeMap[k.b]; const [col, dash] = LINK[k.kind] || LINK.sw;
-      const p = el('path', { d: `M${a.x} ${a.y} L${b.x} ${b.y}`, class: 'link', stroke: col, 'stroke-dasharray': dash, id: 'lk' + i }, lg);
+      const g = el('g', { class: 'lkgrp' }, lg);
+      const mk = d => { const p = el('path', { d, class: 'link', stroke: col, 'stroke-dasharray': dash }, g); return p; };
+      const straight = `M${a.x} ${a.y} L${b.x} ${b.y}`;
+      if (k.kind === 'opt') {
+        const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1, nx = -dy / len * 3.5, ny = dx / len * 3.5;
+        mk(`M${a.x + nx} ${a.y + ny} L${b.x + nx} ${b.y + ny}`); mk(`M${a.x - nx} ${a.y - ny} L${b.x - nx} ${b.y - ny}`);
+      } else if (k.kind === 'wire') {
+        mk(straight).setAttribute('stroke-width', 3.2);
+        el('circle', { cx: a.x, cy: a.y, r: 3.6, fill: col, stroke: 'var(--panel)', 'stroke-width': 1.4 }, g);
+        el('circle', { cx: b.x, cy: b.y, r: 3.6, fill: col, stroke: 'var(--panel)', 'stroke-width': 1.4 }, g);
+      } else if (k.kind === 'trace') {
+        const mx = (a.x + b.x) / 2;
+        mk(Math.abs(b.x - a.x) > 8 && Math.abs(b.y - a.y) > 8 ? `M${a.x} ${a.y} L${mx} ${a.y} L${mx} ${b.y} L${b.x} ${b.y}` : straight).setAttribute('stroke-width', 1.6);
+      } else if (k.kind === 'rf') {
+        const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2, dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1;
+        const lift = Math.min(90, Math.max(28, len * 0.28));
+        mk(`M${a.x} ${a.y} Q${mx + dy / len * lift} ${my - dx / len * lift} ${b.x} ${b.y}`);
+      } else mk(straight);
       const [, , lkName] = LINK[k.kind] || LINK.sw;
-      el('title', {}, p).textContent = `${lkName}${k.label ? ' · ' + k.label : ''}`;
-      k.el = p;
+      el('title', {}, g).textContent = `${lkName}${k.label ? ' · ' + k.label : ''}`;
+      k.el = g;
     });
     const lblg = el('g', {}, svg);
     l.links.forEach(k => {
@@ -211,13 +241,16 @@
   function renderOverview() {
     const l = st.lesson;
     $('#side').innerHTML = `<div class="ph">LESSON OVERVIEW</div><div class="body">
-      <span class="badge">${st.done[l.id] ? '✓ COMPLETED' : '● ACTIVE'}</span><h2>${esc(l.title)}</h2><div class="st">${esc(l.subtitle)}</div>
+      <span class="badge">${st.done[l.id] ? '✓ COMPLETED' : '● ACTIVE'}</span><h2>${esc(l.title)}</h2><div class="st">${esc(l.subtitle)}${l.mins ? ' · ~' + l.mins + ' min' : ''}</div>
+      ${l.tags ? `<div class="tags">${l.tags.map(t => `<span>${esc(t)}</span>`).join('')}</div>` : ''}
+      ${(l.prereq || []).length ? `<h4>PREREQUISITES</h4><div class="preq">${l.prereq.map(pid => { const p = LESSONS.find(x => x.id === pid); return p ? `<a href="#/${pid}" data-l="${pid}" class="${st.done[pid] ? '' : 'todo'}">${esc(p.title)}</a>` : ''; }).join(' · ')}</div>` : ''}
       ${l.overview.map(p => `<p>${p}</p>`).join('')}
       <table class="facts">${(l.facts || []).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join('')}</table>
       ${l.terms ? `<h4>KEY TERMS</h4><dl class="terms">${l.terms.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${v}</dd>`).join('')}</dl>` : ''}
       ${l.atWork ? `<h4>AT WORK (HPE CONTEXT)</h4><p>${l.atWork}</p>` : ''}
       ${l.refs ? `<h4>FURTHER READING</h4><ul>${l.refs.map(([n, u]) => `<li><a href="${u}" target="_blank" rel="noopener">${esc(n)}</a></li>`).join('')}</ul>` : ''}
     </div>`;
+    $('#side').querySelectorAll('a[data-l]').forEach(a => a.onclick = e => { e.preventDefault(); openLesson(a.dataset.l); });
   }
   function renderInspector() {
     const l = st.lesson, m = l.msgs[st.sel], col = l.pcolor[m.proto];

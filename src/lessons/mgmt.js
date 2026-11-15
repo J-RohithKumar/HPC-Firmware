@@ -32,7 +32,7 @@
   };
 
   LESSONS.push({
-    id: 'ipmi-lan', cat: 'mgmt', title: 'IPMI over LAN (RMCP+)', subtitle: 'ipmitool -I lanplus chassis status',
+    id: "ipmi-lan", cat: "ilo", ord: 190, mins: 15, tags: ["ipmi", "rmcp", "rakp", "udp623", "lanplus", "session"], prereq: ["ilo-architecture", "kcs"], title: 'IPMI over LAN (RMCP+)', subtitle: 'ipmitool -I lanplus chassis status',
     keywords: 'ipmi rmcp rakp udp 623 lanplus session ipmitool cipher suite 3',
     intro: 'IPMI is the older (1998+) management protocol that every BMC still speaks. Over the network it uses UDP port <b>623</b>, wrapped in <b>RMCP+</b>, with a 4-message <b>RAKP</b> handshake that authenticates without sending the password.',
     overview: [
@@ -77,7 +77,7 @@
   const R = (path) => 'GET ' + path + ' HTTP/1.1';
   const T = { Host: 'ilo-node01', 'X-Auth-Token': '4f1c0e...9a' };
   LESSONS.push({
-    id: 'redfish', cat: 'mgmt', title: 'Redfish REST API', subtitle: 'Modern BMC management over HTTPS',
+    id: "redfish", cat: "ilo", ord: 170, mins: 12, tags: ["redfish", "rest", "https", "json", "odata", "session"], prereq: ["ilo-architecture", "networking-101"], title: 'Redfish REST API', subtitle: 'Modern BMC management over HTTPS',
     keywords: 'redfish rest json https dmtf session token systems chassis managers odata',
     intro: 'Redfish is the DMTF standard that replaced IPMI: <b>HTTPS + JSON</b>, a tree of resources starting at <code>/redfish/v1</code>. If you can use <code>curl</code>, you can manage a server.',
     overview: [
@@ -117,7 +117,7 @@
 
   /* =============== iLO communication paths =============== */
   LESSONS.push({
-    id: 'ilo-paths', cat: 'mgmt', title: 'iLO communication paths', subtitle: 'Out-of-band, shared NIC, host channel, KVM',
+    id: "ilo-paths", cat: "ilo", ord: 210, mins: 10, tags: ["ilo", "oob", "in-band", "chif", "kvm", "virtual-media", "ncsi"], prereq: ["ilo-architecture", "ncsi"], title: 'iLO communication paths', subtitle: 'Out-of-band, shared NIC, host channel, KVM',
     keywords: 'ilo out of band in-band chif ams virtual nic host interface remote console virtual media hid usb',
     intro: 'iLO (HPE\'s BMC) can be reached in several ways. Understanding <b>which path a command takes</b> is half of debugging management problems.',
     overview: [
@@ -164,7 +164,7 @@
 
   /* =============== HMC / fleet manager =============== */
   LESSONS.push({
-    id: 'cluster', cat: 'mgmt', title: 'Cluster management', subtitle: 'One console, hundreds of BMCs',
+    id: "cluster", cat: "ilo", ord: 240, mins: 12, tags: ["cluster", "fleet", "events", "inventory", "slurm", "hmc-fleet"], prereq: ["ilo-paths", "redfish"], title: 'Cluster management', subtitle: 'One console, hundreds of BMCs',
     keywords: 'hardware management console cluster manager discovery inventory events subscription rolling update power capping hms csm',
     intro: 'In HPC you never click through 1 000 iLO web pages. A <b>cluster manager</b> / management console discovers every BMC, collects inventory, listens for events and pushes actions (power, firmware, capping) to all of them.',
     overview: [
