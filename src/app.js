@@ -64,7 +64,7 @@
   }
   function renderList() {
     const q = st.q.toLowerCase();
-    const hay = l => (l.title + ' ' + l.subtitle + ' ' + (l.keywords || '') + ' ' + (l.tags || []).join(' ')).toLowerCase();
+    const hay = l => (l.title + ' ' + l.subtitle + ' ' + (l.keywords || '') + ' ' + (l.tags || []).join(' ') + ' ' + (l.overview || []).join(' ') + ' ' + (l.steps || []).map(s => s.title + ' ' + (s.text || '')).join(' ') + ' ' + (l.msgs || []).map(m => m.proto + ' ' + m.info + ' ' + (m.short || '')).join(' ')).toLowerCase();
     const items = LESSONS.filter(l => (st.cat === 'all' || l.cat === st.cat) && (!q || hay(l).includes(q))).sort((a, b) => (a.ord || 999) - (b.ord || 999));
     const curStep = st.lesson && st.cur >= 0 ? st.lesson.msgs[st.cur].step : -1;
     const item = l => {
@@ -144,12 +144,28 @@
       tg.setAttribute('x', -(n.label.length * 3.7) - 4);
       const [ty, tcol] = TYPE[n.type] || ['', '#334155'];
       el('title', {}, g).textContent = `${ty} · ${n.label}${n.sub ? ' — ' + n.sub : ''}`;
+      g.addEventListener('click', ev => { ev.stopPropagation(); showNodePop(n, ev); });
       n.el = g;
     });
+    svg.addEventListener('click', () => { const p = $('#npop'); if (p) p.hidden = true; });
+    const vb = { x: 0, y: 0, w: 1000, h: 560 };
+    const applyVB = () => svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+    svg.addEventListener('wheel', e => { e.preventDefault(); const f = e.deltaY > 0 ? 1.15 : 0.87, r = svg.getBoundingClientRect(); const cx = (e.clientX - r.left) / r.width * vb.w + vb.x, cy = (e.clientY - r.top) / r.height * vb.h + vb.y; vb.w *= f; vb.h *= f; vb.x = cx - (cx - vb.x) * f; vb.y = cy - (cy - vb.y) * f; applyVB(); }, { passive: false });
+    let drag = null; svg.style.cursor = 'grab';
+    svg.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY, vx: vb.x, vy: vb.y }; svg.setPointerCapture(e.pointerId); svg.style.cursor = 'grabbing'; });
+    svg.addEventListener('pointermove', e => { if (!drag) return; const r = svg.getBoundingClientRect(); vb.x = drag.vx - (e.clientX - drag.x) / r.width * vb.w; vb.y = drag.vy - (e.clientY - drag.y) / r.height * vb.h; applyVB(); });
+    svg.addEventListener('pointerup', () => { drag = null; svg.style.cursor = 'grab'; });
     packetLayer = el('g', {}, svg);
     const kinds = [...new Set(l.links.map(k => k.kind))];
     $('#linklegend').innerHTML = kinds.map(k => { const [c, d, n] = LINK[k] || LINK.sw; return `<span><i style="border-top-color:${c};border-top-style:${d ? 'dashed' : 'solid'}"></i>${n}</span>`; }).join('');
     highlight();
+  }
+  function showNodePop(n, ev) {
+    const p = $('#npop'); if (!p || !st.lesson) return;
+    const ty = (TYPE[n.type] || ['', ''])[0];
+    const con = st.lesson.links.filter(k => k.a === n.id || k.b === n.id).map(k => { const [c, d, nm] = LINK[k.kind] || LINK.sw; const o = k.a === n.id ? k.b : k.a; const on = st.lesson.nodeMap[o]; return `<div>↔ ${esc(on ? on.label : '?')} · ${esc(nm)}${k.label ? ' · ' + esc(k.label) : ''}</div>`; });
+    p.innerHTML = `<b>${esc(n.label)}</b><div class="muted">${esc(ty)}${n.sub ? ' · ' + esc(n.sub) : ''}</div>${con.join('')}`;
+    p.hidden = false; p.style.left = Math.min(ev.clientX + 12, innerWidth - 250) + 'px'; p.style.top = Math.min(ev.clientY + 12, innerHeight - 160) + 'px';
   }
   function pathOf(m) { return [m.from, ...(m.via || []), m.to].map(id => st.lesson.nodeMap[id]); }
   function findLink(a, b) { return st.lesson.links.find(k => (k.a === a && k.b === b) || (k.a === b && k.b === a)); }
@@ -231,7 +247,7 @@
     const l = st.lesson, t = $('#tut');
     let head, body;
     if (st.cur < 0) { head = 'START HERE'; body = l.intro || 'Press PLAY to watch the exchange, or STEP through it one message at a time. Click any message to inspect its bytes.'; }
-    else { const m = l.msgs[st.cur], s = l.steps[m.step]; head = `STEP ${m.step + 1}/${l.steps.length} · ${s.title.toUpperCase()}`; body = s.text; }
+    else { const m = l.msgs[st.cur], s = l.steps[m.step]; head = `STEP ${m.step + 1}/${l.steps.length} · ${s.title.toUpperCase()} · MSG ${st.cur + 1}/${l.msgs.length}`; body = s.text; }
     t.className = 'tut' + (st.tutMin ? ' min' : '');
     t.innerHTML = `<span class="mn" title="minimise">${st.tutMin ? '▴' : '▾'}</span><span class="hd">${esc(head)}</span><div class="tx">${body}</div>`;
     t.querySelector('.mn').onclick = () => { st.tutMin = !st.tutMin; renderTut(); };
@@ -240,7 +256,9 @@
   /* ---------------- side panel ---------------- */
   function renderOverview() {
     const l = st.lesson;
+    const nxt = LESSONS.slice().sort((a, b) => (a.ord || 999) - (b.ord || 999)).find(x => x.ord > l.ord);
     $('#side').innerHTML = `<div class="ph">LESSON OVERVIEW</div><div class="body">
+      ${nxt ? `<div class="nxt"><button class="btn primary" id="nextles">NEXT →</button><span class="muted">${esc(nxt.title)} · ${esc(nxt.subtitle)}</span></div>` : ''}
       <span class="badge">${st.done[l.id] ? '✓ COMPLETED' : '● ACTIVE'}</span><h2>${esc(l.title)}</h2><div class="st">${esc(l.subtitle)}${l.mins ? ' · ~' + l.mins + ' min' : ''}</div>
       ${l.tags ? `<div class="tags">${l.tags.map(t => `<span>${esc(t)}</span>`).join('')}</div>` : ''}
       ${(l.prereq || []).length ? `<h4>PREREQUISITES</h4><div class="preq">${l.prereq.map(pid => { const p = LESSONS.find(x => x.id === pid); return p ? `<a href="#/${pid}" data-l="${pid}" class="${st.done[pid] ? '' : 'todo'}">${esc(p.title)}</a>` : ''; }).join(' · ')}</div>` : ''}
@@ -251,6 +269,7 @@
       ${l.refs ? `<h4>FURTHER READING</h4><ul>${l.refs.map(([n, u]) => `<li><a href="${u}" target="_blank" rel="noopener">${esc(n)}</a></li>`).join('')}</ul>` : ''}
     </div>`;
     $('#side').querySelectorAll('a[data-l]').forEach(a => a.onclick = e => { e.preventDefault(); openLesson(a.dataset.l); });
+    const nb = $('#nextles'); if (nb && nxt) nb.onclick = () => openLesson(nxt.id);
   }
   function renderInspector() {
     const l = st.lesson, m = l.msgs[st.sel], col = l.pcolor[m.proto];
@@ -310,6 +329,9 @@
     document.querySelectorAll('#tbl tbody tr').forEach((tr, i) => tr.className = i === st.cur ? 'cur' : i > st.cur ? 'future' : '');
     const tr = document.querySelector('#tbl tr.cur'); if (tr) tr.scrollIntoView({ block: 'nearest' });
     highlight(); renderTut(); renderList(); syncHash();
+    const grp = LESSONS.filter(x => x.cat === st.lesson.cat).sort((a, b) => (a.ord || 999) - (b.ord || 999));
+    const cn = CATS.find(c => c[0] === st.lesson.cat);
+    $('#crumb').textContent = cn ? `${cn[1].toUpperCase()} · ${grp.indexOf(st.lesson) + 1}/${grp.length}` : '';
     if (st.view === 'seq') renderSeq();
     $('#play').textContent = st.playing ? '❚❚ PAUSE' : '▶ PLAY';
   }
@@ -394,7 +416,7 @@
     else if (e.key === 'v' || e.key === 'V') $(`#viewseg button[data-v="${st.view === 'net' ? 'seq' : 'net'}"]`).click();
     else if (e.key === 'p' || e.key === 'P') $('#pauseSteps').click();
     else if ((e.key === 'i' || e.key === 'I') && st.cur >= 0) select(st.cur);
-    else if (e.key === 'Escape') { $('#modal').hidden = true; closeInsp(); }
+    else if (e.key === 'Escape') { $('#modal').hidden = true; closeInsp(); const p = $('#npop'); if (p) p.hidden = true; }
     else if (e.key === '/') { e.preventDefault(); $('#q').focus(); }
   });
   if (store && store.getItem('fwx-dark')) document.documentElement.classList.add('dark');
