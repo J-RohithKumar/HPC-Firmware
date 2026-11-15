@@ -3,7 +3,7 @@
   const $ = s => document.querySelector(s);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const SVGNS = 'http://www.w3.org/2000/svg';
-  const CATS = [['all', 'All'], ['platform', 'Platform'], ['buses', 'Buses'], ['mgmt', 'Mgmt'], ['firmware', 'Firmware']];
+  const CATS = [['all', 'All'], ['platform', 'Platform'], ['buses', 'Buses'], ['gpu', 'GPU'], ['mgmt', 'Mgmt'], ['firmware', 'Firmware']];
   const PALETTE = ['#2563eb', '#16a34a', '#f59e0b', '#8b5cf6', '#ef4444', '#0891b2', '#db2777', '#65a30d', '#475569'];
   const TYPE = {
     bmc: ['BMC', '#1d4ed8'], cpu: ['CPU', '#7c3aed'], flash: ['SPI FLASH', '#d97706'], psu: ['PSU', '#dc2626'], cpld: ['CPLD', '#0891b2'],

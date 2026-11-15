@@ -208,7 +208,7 @@
       { id: 'cmc', type: 'chassis', label: 'Chassis manager', sub: 'chassis controller', x: 500, y: 90 },
       { id: 'fan', type: 'fan', label: 'Fan modules', sub: 'PWM + tach', x: 860, y: 100 },
       { id: 'sw', type: 'switch', label: 'Mgmt switch', sub: 'on backplane', x: 500, y: 225 },
-      { id: 'up', type: 'console', label: 'System mgmt', sub: 'HMC / cluster mgr', x: 860, y: 225 },
+      { id: 'up', type: 'console', label: 'System mgmt', sub: 'cluster manager', x: 860, y: 225 },
       { id: 'b1', type: 'blade', label: 'Blade 1 BMC', sub: '10.254.1.11', x: 190, y: 390 },
       { id: 'b2', type: 'blade', label: 'Blade 2 BMC', sub: '10.254.1.12', x: 500, y: 390 },
       { id: 'b3', type: 'blade', label: 'Blade 3 BMC', sub: 'just inserted', x: 810, y: 390 },
@@ -223,7 +223,7 @@
       { title: 'Power budget', sub: 'Can we afford it?', text: 'The manager reads PSU output over <b>PMBus</b>, subtracts the redundancy reserve and existing allocations, and only then asserts <b>PWR_EN</b>. The blade\'s hot-swap controller ramps 12 V gently.' },
       { title: 'BMC joins network', sub: 'DHCP on the internal network', text: 'The blade BMC boots on standby power and sends <b>DHCP DISCOVER</b> on the backplane Ethernet. The chassis manager (or the system manager) answers, often with an IP derived from the <b>slot number</b>, so addresses are predictable.' },
       { title: 'Monitor + cool', sub: 'Telemetry drives fans', text: 'The manager polls each blade BMC (Redfish) for temperatures and sets the shared fans to satisfy the <b>hottest</b> blade.' },
-      { title: 'Coordinated control', sub: 'Commands from above', text: 'Higher-level software (HMC / cluster manager) talks to the chassis manager, which applies the command to the blades, e.g. a <b>chassis power cap</b> split across nodes.' },
+      { title: 'Coordinated control', sub: 'Commands from above', text: 'Higher-level software (cluster manager) talks to the chassis manager, which applies the command to the blades, e.g. a <b>chassis power cap</b> split across nodes.' },
     ],
     msgs: [
       { t: '0.00s', from: 'b3', to: 'cmc', proto: 'GPIO', step: 0, info: 'PRSNT#_SLOT3 asserted: blade seated', short: 'PRSNT# low', layers: FX.sig('PRSNT#_SLOT3', 'LOW', 'Blade present. Presence pins are the shortest, so they make contact last and break first.') },

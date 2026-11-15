@@ -137,7 +137,7 @@
     atWork: 'This is exactly the kind of thing an HPC firmware team touches: accelerator, NIC and switch firmware updates driven by the BMC. On OpenBMC see <code>pldm</code> (pldmd, fw-update) and <code>mctpd</code>; try <code>pldmtool</code> on a BMC shell.',
     refs: [['DMTF PMCI (MCTP, PLDM specs)', 'https://www.dmtf.org/standards/pmci'], ['OpenBMC pldm', 'https://github.com/openbmc/pldm'], ['Linux MCTP kernel docs', 'https://docs.kernel.org/networking/mctp.html']],
     nodes: [
-      { id: 'pc', type: 'laptop', label: 'Admin / HMC', sub: 'Redfish', x: 120, y: 120 },
+      { id: 'pc', type: 'laptop', label: 'Admin', sub: 'Redfish', x: 120, y: 120 },
       { id: 'pldm', type: 'svc', label: 'pldmd (UA)', sub: 'BMC, EID 8', x: 420, y: 120 },
       { id: 'mctp', type: 'kernel', label: 'MCTP stack', sub: 'AF_MCTP sockets', x: 420, y: 330 },
       { id: 'nic', type: 'nic', label: 'NIC (FD)', sub: 'EID 20', x: 780, y: 230 },
