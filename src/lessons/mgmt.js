@@ -189,7 +189,7 @@
       { title: 'Discovery', sub: 'Find every BMC', text: 'New BMCs ask DHCP for an address. The cluster manager (or its DHCP service) records the MAC → IP → physical location mapping, then probes <code>/redfish/v1</code> to confirm a Redfish service is there.' },
       { title: 'Inventory', sub: 'Walk the Redfish tree', text: 'The cluster manager reads Systems, Chassis, Managers and FirmwareInventory from each BMC and stores serials, models and firmware versions centrally.' },
       { title: 'Subscribe to events', sub: 'Push, don\'t poll', text: 'The cluster manager creates an <b>event subscription</b> on each BMC. From now on the BMC POSTs alerts to the cluster manager immediately.' },
-      { title: 'Alert arrives', sub: 'Fault → HMC → scheduler', text: 'Node 2 reports a correctable memory error crossing its threshold. The cluster manager marks the node degraded and tells the scheduler to drain it.' },
+      { title: 'Alert arrives', sub: 'Fault → manager → scheduler', text: 'Node 2 reports a correctable memory error crossing its threshold. The cluster manager marks the node degraded and tells the scheduler to drain it.' },
       { title: 'Orchestrate', sub: 'Act on many nodes', text: 'The admin asks for a rolling BIOS update on the rack. The cluster manager pushes the image to one batch of BMCs at a time and tracks each Task to completion.' },
     ],
     msgs: [
