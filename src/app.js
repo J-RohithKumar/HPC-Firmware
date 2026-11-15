@@ -10,7 +10,7 @@
     pch: ['PCH', '#4f46e5'], laptop: ['ADMIN', '#475569'], switch: ['SWITCH', '#16a34a'], sensor: ['SENSOR', '#ea580c'], nic: ['NIC', '#0d9488'],
     console: ['CONSOLE', '#1e40af'], host: ['HOST OS', '#7c3aed'], svc: ['SERVICE', '#2563eb'], disk: ['DISK', '#64748b'], fan: ['FAN', '#0284c7'],
     mux: ['MUX', '#a16207'], eeprom: ['EEPROM', '#ca8a04'], vr: ['VR', '#be123c'], chassis: ['CHASSIS MGR', '#334155'], button: ['BUTTON', '#6b7280'],
-    device: ['DEVICE', '#0d9488'], kernel: ['KERNEL', '#9333ea'], bus: ['D-BUS', '#0369a1'], server: ['SERVER', '#334155'], dhcp: ['DHCP', '#15803d'],
+    device: ['DEVICE', '#0d9488'], usb: ['USB', '#475569'], kernel: ['KERNEL', '#9333ea'], bus: ['D-BUS', '#0369a1'], server: ['SERVER', '#334155'], dhcp: ['DHCP', '#15803d'],
     blade: ['BLADE', '#475569'], gpio: ['GPIO', '#6b7280'],
   };
   const LINK = {
@@ -56,7 +56,10 @@
   function renderNet() {
     const l = st.lesson, c = $('#canvas'); c.innerHTML = '';
     svg = el('svg', { viewBox: '0 0 1000 560', preserveAspectRatio: 'xMidYMid meet' }, c);
-    (l.zones || []).forEach(z => { const g = el('g', { class: 'zone' }, svg); el('rect', { x: z.x, y: z.y, width: z.w, height: z.h, rx: 8 }, g); const t = el('text', { x: z.x + 10, y: z.y + 16 }, g); t.textContent = z.label.toUpperCase(); });
+    const defs = el('defs', {}, svg), pat = el('pattern', { id: 'isodots', width: 26, height: 15, patternUnits: 'userSpaceOnUse' }, defs);
+    el('circle', { cx: 1, cy: 1, r: 1, class: 'gdot' }, pat); el('circle', { cx: 14, cy: 8.5, r: 1, class: 'gdot' }, pat);
+    el('rect', { x: -500, y: -300, width: 2000, height: 1200, fill: 'url(#isodots)' }, svg);
+    (l.zones || []).forEach(z => { const g = el('g', { class: 'zone' }, svg); el('rect', { x: z.x, y: z.y, width: z.w, height: z.h, rx: 8 }, g); const t = el('text', { x: z.x + 10, y: z.y + z.h - 8 }, g); t.textContent = z.label.toUpperCase(); });
     const lg = el('g', {}, svg);
     l.links.forEach((k, i) => {
       const a = l.nodeMap[k.a], b = l.nodeMap[k.b]; const [col, dash] = LINK[k.kind] || LINK.sw;
@@ -74,15 +77,14 @@
     });
     const ng = el('g', {}, svg);
     l.nodes.forEach(n => {
-      const [tg, col] = TYPE[n.type] || ['', '#334155'];
-      const w = n.w || Math.max(118, Math.max(n.label.length * 8.2, (n.sub || '').length * 6.3) + 22), h = n.sub ? 50 : 40;
-      const g = el('g', { class: 'node', transform: `translate(${n.x - w / 2},${n.y - h / 2})`, id: 'nd-' + n.id }, ng);
-      el('rect', { class: 'body', width: w, height: h, rx: 4 }, g);
-      el('rect', { width: w, height: 13, rx: 3, fill: col }, g);
-      el('rect', { y: 9, width: w, height: 4, fill: col }, g);
-      const t = el('text', { x: 6, y: 9.5, class: 'tg' }, g); t.textContent = n.tag || tg;
-      const lb = el('text', { x: w / 2, y: 29, class: 'lbl', 'text-anchor': 'middle' }, g); lb.textContent = n.label;
-      if (n.sub) { const s = el('text', { x: w / 2, y: 43, class: 'sub', 'text-anchor': 'middle' }, g); s.textContent = n.sub; }
+      const [, col] = TYPE[n.type] || ['', '#334155'];
+      const g = el('g', { class: 'node', transform: `translate(${n.x},${n.y})`, id: 'nd-' + n.id }, ng);
+      const ig = el('g', { transform: 'translate(0,-12) scale(1.18)' }, g);
+      FXI.draw(ig, n.type, col);
+      const lb = el('text', { y: 40, class: 'lbl', 'text-anchor': 'middle' }, g); lb.textContent = n.label;
+      if (n.sub) { const sb = el('text', { y: 53, class: 'sub', 'text-anchor': 'middle' }, g); sb.textContent = n.sub; }
+      const tg = el('text', { y: 40, class: 'dot', 'text-anchor': 'end', fill: col }, g); tg.textContent = '●';
+      tg.setAttribute('x', -(n.label.length * 3.7) - 4);
       n.el = g;
     });
     packetLayer = el('g', {}, svg);

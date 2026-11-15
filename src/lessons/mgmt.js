@@ -138,7 +138,7 @@
       { id: 'ilo', type: 'bmc', label: 'iLO', sub: 'dedicated port', x: 620, y: 260, tag: 'BMC · iLO' },
       { id: 'nic', type: 'nic', label: 'Host NIC', sub: 'LOM / OCP', x: 620, y: 470 },
       { id: 'host', type: 'host', label: 'Host OS', sub: 'AMS · iLOrest', x: 870, y: 260 },
-      { id: 'usb', type: 'device', label: 'Virtual USB', sub: 'kbd · mouse · DVD', x: 870, y: 470, tag: 'iLO USB' },
+      { id: 'usb', type: 'usb', label: 'Virtual USB', sub: 'kbd · mouse · DVD', x: 870, y: 470, tag: 'iLO USB' },
     ],
     links: [
       { a: 'pc', b: 'msw', kind: 'lan' }, { a: 'pc', b: 'dsw', kind: 'lan', t: .7 }, { a: 'msw', b: 'ilo', kind: 'lan', label: 'OOB' }, { a: 'dsw', b: 'nic', kind: 'lan' },
