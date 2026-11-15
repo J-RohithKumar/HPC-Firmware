@@ -42,13 +42,14 @@
         <button class="btn primary" id="play">▶ PLAY</button>
         <button class="btn" id="step" title="Next (→)">STEP</button>
         <button class="btn" id="reset" title="Restart (R)">↺</button>
+        <button class="btn" id="pauseSteps" title="Auto-pause playback at each new step (P)">❚❚ STEPS</button>
       </div>
     </div>
     <div class="tablewrap"><table id="tbl"><thead><tr><th>No.</th><th>Time</th><th>Source</th><th>Destination</th><th>Protocol</th><th>Info</th><th>Size</th></tr></thead><tbody></tbody></table></div>
   </section>
 </main>
 <div class="modal" id="modal" hidden><div class="card"><h3>Keyboard shortcuts</h3>
-<table><tr><td><kbd>Space</kbd></td><td>Play / pause</td></tr><tr><td><kbd>→</kbd> / <kbd>←</kbd></td><td>Next / previous message</td></tr><tr><td><kbd>R</kbd></td><td>Restart lesson</td></tr><tr><td><kbd>V</kbd></td><td>Toggle topology / sequence</td></tr><tr><td><kbd>I</kbd></td><td>Inspect current message</td></tr><tr><td><kbd>Esc</kbd></td><td>Close inspector</td></tr><tr><td><kbd>/</kbd></td><td>Search lessons</td></tr></table>
+<table><tr><td><kbd>Space</kbd></td><td>Play / pause</td></tr><tr><td><kbd>→</kbd> / <kbd>←</kbd></td><td>Next / previous message</td></tr><tr><td><kbd>R</kbd></td><td>Restart lesson</td></tr><tr><td><kbd>V</kbd></td><td>Toggle topology / sequence</td></tr><tr><td><kbd>P</kbd></td><td>Toggle pause-at-step during play</td></tr><tr><td><kbd>I</kbd></td><td>Inspect current message</td></tr><tr><td><kbd>Esc</kbd></td><td>Close inspector</td></tr><tr><td><kbd>/</kbd></td><td>Search lessons</td></tr></table>
 <p class="muted">Values tagged <b class="eg">E.G.</b> are examples that differ between systems. <span class="encs">--</span> bytes are encrypted/random. Scenarios are simplified teaching models built from public specs (IPMI 2.0, DMTF Redfish/PLDM/MCTP/NC-SI, OpenBMC); always confirm platform specifics with your team's docs.</p>
 <button class="btn primary" id="closemodal">Got it</button></div></div>
 <script src="lib.js"></script>

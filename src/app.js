@@ -30,7 +30,32 @@
   const st = {
     cat: 'all', q: '', lesson: null, cur: -1, sel: null, fsel: null, playing: false, anim: false, view: 'net', speed: 1,
     done: JSON.parse((store && store.getItem('fwx-done')) || '{}'), tutMin: false,
+    pauseSteps: !store || store.getItem('fwx-pausesteps') !== '0',
   };
+
+  /* ---------------- lesson validation (dev aid) ---------------- */
+  function validateLessons() {
+    const warn = (l, msg) => console.warn(`[firmware-explorer] lesson "${l.id}": ${msg}`);
+    LESSONS.forEach(l => {
+      if (!l.nodes || !l.nodes.length || !l.msgs || !l.msgs.length) return warn(l, 'missing nodes or msgs');
+      const ids = new Set(l.nodes.map(n => n.id));
+      if (ids.size !== l.nodes.length) warn(l, 'duplicate node ids');
+      l.nodes.forEach(n => { if (!TYPE[n.type]) warn(l, `node "${n.id}" has unknown type "${n.type}"`); });
+      l.links.forEach((k, i) => {
+        if (!ids.has(k.a) || !ids.has(k.b)) warn(l, `link ${i} references missing node (${k.a} → ${k.b})`);
+        if (!LINK[k.kind]) warn(l, `link ${i} has unknown kind "${k.kind}"`);
+      });
+      const nsteps = (l.steps || []).length;
+      l.msgs.forEach((m, i) => {
+        [m.from, m.to, ...(m.via || [])].forEach(id => { if (!ids.has(id)) warn(l, `msg ${i} references missing node "${id}"`); });
+        if (!(m.step >= 0 && m.step < nsteps)) warn(l, `msg ${i} has step ${m.step} out of range (0–${nsteps - 1})`);
+        if (!m.layers || !m.layers.length) warn(l, `msg ${i} has no layers`);
+        if (m.from === m.to && (m.via || []).length) warn(l, `msg ${i} is a self-message but has via hops`);
+      });
+      (l.steps || []).forEach((s, i) => { if (!l.msgs.some(m => m.step === i)) warn(l, `step ${i} ("${s.title}") has no messages`); });
+    });
+  }
+  validateLessons();
 
   /* ---------------- lesson list ---------------- */
   function renderCats() {
@@ -64,6 +89,8 @@
     l.links.forEach((k, i) => {
       const a = l.nodeMap[k.a], b = l.nodeMap[k.b]; const [col, dash] = LINK[k.kind] || LINK.sw;
       const p = el('path', { d: `M${a.x} ${a.y} L${b.x} ${b.y}`, class: 'link', stroke: col, 'stroke-dasharray': dash, id: 'lk' + i }, lg);
+      const [, , lkName] = LINK[k.kind] || LINK.sw;
+      el('title', {}, p).textContent = `${lkName}${k.label ? ' · ' + k.label : ''}`;
       k.el = p;
     });
     const lblg = el('g', {}, svg);
@@ -85,6 +112,8 @@
       if (n.sub) { const sb = el('text', { y: 53, class: 'sub', 'text-anchor': 'middle' }, g); sb.textContent = n.sub; }
       const tg = el('text', { y: 40, class: 'dot', 'text-anchor': 'end', fill: col }, g); tg.textContent = '●';
       tg.setAttribute('x', -(n.label.length * 3.7) - 4);
+      const [ty, tcol] = TYPE[n.type] || ['', '#334155'];
+      el('title', {}, g).textContent = `${ty} · ${n.label}${n.sub ? ' — ' + n.sub : ''}`;
       n.el = g;
     });
     packetLayer = el('g', {}, svg);
@@ -201,7 +230,7 @@
     const r = sel ? ranges.find(x => x.li === sel[0] && x.fi === sel[1]) : null;
     let html = `<div class="insp-h"><div><div class="ttl"><span class="num" style="background:${col}">${st.sel + 1}</span>${esc(m.short || m.proto)}</div>
       <div class="meta">${esc(m.t)} · ${esc(a.label)} → ${esc(b.label)} · ${esc(m.proto)} · ${m.bytes.length} B</div></div>
-      <div class="nav"><button class="btn" data-n="-1">‹</button><button class="btn" data-n="1">›</button><button class="btn" data-n="x">✕</button></div></div>`;
+      <div class="nav"><button class="btn" data-n="-1">‹</button><button class="btn" data-n="1">›</button><button class="btn" data-n="c" title="Copy raw bytes as hex">⧉</button><button class="btn" data-n="x">✕</button></div></div>`;
     if (m.note) html += `<div class="note">${m.note}</div>`;
     html += `<div class="lbar">${lens.map((n, i) => n ? `<div style="flex:${n / tot};background:${LC[i % LC.length]}"></div>` : '').join('')}</div>`;
     html += `<div class="lbar-t">${lens.map((n, i) => n ? `<div style="flex:${n / tot}">${esc(m.layers[i].name.split(' ·')[0])}</div>` : '').join('')}</div>`;
@@ -222,7 +251,17 @@
     $('#side').innerHTML = html;
     $('#side').querySelectorAll('.fld').forEach(d => d.onclick = () => { const [li, fi] = d.dataset.f.split(',').map(Number); st.fsel = sel && sel[0] === li && sel[1] === fi ? null : [li, fi]; renderInspector(); });
     $('#side').querySelectorAll('.hex span.b').forEach(s => s.onclick = () => { const k = +s.dataset.k; const rr = ranges.find(x => k >= x.s && k < x.e); if (rr) { st.fsel = [rr.li, rr.fi]; renderInspector(); const f = $('#side .fld.on'); f && f.scrollIntoView({ block: 'nearest' }); } });
-    $('#side').querySelectorAll('.nav button').forEach(bn => bn.onclick = () => { const n = bn.dataset.n; if (n === 'x') closeInsp(); else select(Math.max(0, Math.min(l.msgs.length - 1, st.sel + +n))); });
+    $('#side').querySelectorAll('.nav button').forEach(bn => bn.onclick = () => {
+      const n = bn.dataset.n;
+      if (n === 'x') return closeInsp();
+      if (n === 'c') {
+        const done = ok => { bn.textContent = ok ? '✓' : '!'; setTimeout(() => bn.textContent = '⧉', 900); };
+        if (navigator.clipboard && m.bytes.length) navigator.clipboard.writeText(B.toHex(m.bytes)).then(() => done(true), () => done(false));
+        else done(false);
+        return;
+      }
+      select(Math.max(0, Math.min(l.msgs.length - 1, st.sel + +n)));
+    });
   }
   function renderSide() { st.sel == null ? renderOverview() : renderInspector(); }
   function closeInsp() { st.sel = null; st.fsel = null; renderSide(); }
@@ -237,9 +276,21 @@
   function updateCur() {
     document.querySelectorAll('#tbl tbody tr').forEach((tr, i) => tr.className = i === st.cur ? 'cur' : i > st.cur ? 'future' : '');
     const tr = document.querySelector('#tbl tr.cur'); if (tr) tr.scrollIntoView({ block: 'nearest' });
-    highlight(); renderTut(); renderList();
+    highlight(); renderTut(); renderList(); syncHash();
     if (st.view === 'seq') renderSeq();
     $('#play').textContent = st.playing ? '❚❚ PAUSE' : '▶ PLAY';
+  }
+
+  /* ---------------- URL state: #lesson[/msgIndex][/seq] ---------------- */
+  function parseHash() {
+    const m = location.hash.slice(1).match(/^([^/]+?)(?:\/(\d+))?(?:\/(seq|net))?$/);
+    if (!m || !m[1]) return { id: null, cur: -1, view: 'net' };
+    return { id: m[1], cur: m[2] != null ? +m[2] : -1, view: m[3] === 'seq' ? 'seq' : 'net' };
+  }
+  function syncHash() {
+    if (!st.lesson) return;
+    const h = '#' + st.lesson.id + (st.cur >= 0 ? '/' + st.cur : '') + (st.view === 'seq' ? '/seq' : '');
+    if (location.hash !== h) history.replaceState(null, '', h);
   }
 
   /* ---------------- control ---------------- */
@@ -255,17 +306,25 @@
   async function play() {
     if (st.playing) { st.playing = false; updateCur(); return; }
     st.playing = true; if (st.cur >= st.lesson.msgs.length - 1) st.cur = -1; updateCur();
+    let lastStep = st.cur >= 0 ? st.lesson.msgs[st.cur].step : -1;
     while (st.playing && st.cur < st.lesson.msgs.length - 1) {
       await go(st.cur + 1);
+      if (!st.playing) break;
+      const s = st.lesson.msgs[st.cur].step;
+      if (st.pauseSteps && lastStep >= 0 && s !== lastStep) {
+        lastStep = s; st.playing = false; updateCur();
+        const t = $('#tut'); t.classList.remove('pulse'); void t.offsetWidth; t.classList.add('pulse');
+        break;
+      }
+      lastStep = s;
       await new Promise(r => setTimeout(r, (st.view === 'net' ? 350 : 900) / st.speed));
     }
     st.playing = false; updateCur();
   }
   function select(i) { st.playing = false; st.sel = i; st.fsel = null; renderInspector(); go(i, true); }
-  function openLesson(id, keepHash) {
+  function openLesson(id) {
     const l = LESSONS.find(x => x.id === id) || LESSONS[0];
     st.playing = false; st.lesson = l; st.cur = -1; st.sel = null; st.fsel = null;
-    if (!keepHash) history.replaceState(null, '', '#' + l.id);
     renderList(); renderCanvas(); renderTable(); renderSide(); renderTut(); updateCur();
   }
 
@@ -276,7 +335,13 @@
     const d = e.target.closest('.les'); if (d) openLesson(d.dataset.l);
   };
   $('#q').oninput = e => { st.q = e.target.value; renderList(); };
-  $('#viewseg').onclick = e => { const b = e.target.closest('button'); if (!b) return; st.view = b.dataset.v; document.querySelectorAll('#viewseg button').forEach(x => x.classList.toggle('on', x === b)); renderCanvas(); };
+  $('#viewseg').onclick = e => { const b = e.target.closest('button'); if (!b) return; st.view = b.dataset.v; document.querySelectorAll('#viewseg button').forEach(x => x.classList.toggle('on', x === b)); renderCanvas(); syncHash(); };
+  $('#pauseSteps').onclick = () => {
+    st.pauseSteps = !st.pauseSteps;
+    store && store.setItem('fwx-pausesteps', st.pauseSteps ? '1' : '0');
+    syncPauseBtn();
+  };
+  function syncPauseBtn() { const b = $('#pauseSteps'); b.classList.toggle('on', st.pauseSteps); b.textContent = st.pauseSteps ? '❚❚ STEPS' : 'STEPS'; }
   $('#tbl').onclick = e => { const tr = e.target.closest('tbody tr'); if (tr) select(+tr.dataset.i); };
   $('#play').onclick = play;
   $('#step').onclick = () => { st.playing = false; go(st.cur + 1); };
@@ -294,11 +359,17 @@
     else if (e.key === 'ArrowLeft') { st.playing = false; go(st.cur - 1, false); }
     else if (e.key === 'r' || e.key === 'R') go(-1, false);
     else if (e.key === 'v' || e.key === 'V') $(`#viewseg button[data-v="${st.view === 'net' ? 'seq' : 'net'}"]`).click();
+    else if (e.key === 'p' || e.key === 'P') $('#pauseSteps').click();
     else if ((e.key === 'i' || e.key === 'I') && st.cur >= 0) select(st.cur);
     else if (e.key === 'Escape') { $('#modal').hidden = true; closeInsp(); }
     else if (e.key === '/') { e.preventDefault(); $('#q').focus(); }
   });
   if (store && store.getItem('fwx-dark')) document.documentElement.classList.add('dark');
+  syncPauseBtn();
   renderCats();
-  openLesson(location.hash.slice(1), true);
+  const h = parseHash();
+  st.view = h.view;
+  document.querySelectorAll('#viewseg button').forEach(x => x.classList.toggle('on', x.dataset.v === st.view));
+  openLesson(h.id);
+  if (h.cur >= 0 && st.lesson.msgs[h.cur]) go(h.cur, false);
 })();

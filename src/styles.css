@@ -13,6 +13,7 @@ body{background:var(--bg);color:var(--ink);font:13px/1.45 system-ui,-apple-syste
 kbd{font:11px var(--mono);border:1px solid var(--line);border-radius:3px;padding:0 5px;background:var(--soft)}
 .btn{font:600 12px var(--mono);letter-spacing:.05em;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:6px 12px;border-radius:3px;cursor:pointer}
 .btn:hover{border-color:var(--accent)}.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}.btn.ghost{padding:6px 10px}
+.btn.on{background:var(--accent2);border-color:var(--accent);color:var(--accent)}
 select{font:12px var(--mono);border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:5px;border-radius:3px}
 .app{display:grid;grid-template-columns:280px minmax(0,1fr) 450px;grid-template-rows:minmax(440px,60vh) minmax(220px,1fr);gap:12px;padding:12px;height:calc(100vh - 60px)}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:4px;overflow:hidden;display:flex;flex-direction:column;min-height:0}
@@ -43,6 +44,8 @@ select{font:12px var(--mono);border:1px solid var(--line);background:var(--panel
 .tut{margin:0 10px 10px;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:3px;padding:8px 12px;font-size:12.5px;max-height:120px;overflow:auto;flex:none}
 .tut .hd{font:700 11px var(--mono);color:var(--accent);letter-spacing:.06em;display:block;margin-bottom:2px}
 .tut.min .tx{display:none}.tut .mn{float:right;cursor:pointer;color:var(--muted);margin-left:8px}
+.tut.pulse{animation:tutpulse 1.4s ease}
+@keyframes tutpulse{0%{box-shadow:0 0 0 0 rgba(29,78,216,.45)}100%{box-shadow:0 0 0 16px rgba(29,78,216,0)}}
 .node .lbl{font:700 12.5px var(--mono);fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:4px;stroke-linejoin:round}.node .sub{font:10px var(--mono);fill:var(--muted);paint-order:stroke;stroke:var(--panel);stroke-width:4px;stroke-linejoin:round}.node .dot{font-size:9px}
 .node .ico{transition:transform .25s ease,filter .25s ease}.gdot{fill:var(--line);opacity:.7}
 .node.active .ico{transform:translateY(-6px);filter:drop-shadow(0 0 7px rgba(37,99,235,.75))}.node.active .lbl{fill:var(--accent)}
