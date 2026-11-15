@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Firmware Explorer — learn BMC, OpenBMC, iLO & server firmware visually</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <div class="logo"><svg viewBox="0 0 24 24" width="26" height="26"><rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="8" y="8" width="8" height="8" fill="currentColor"/><path d="M8 1v3M12 1v3M16 1v3M8 20v3M12 20v3M16 20v3M1 8h3M1 12h3M1 16h3M20 8h3M20 12h3M20 16h3" stroke="currentColor" stroke-width="1.6"/></svg></div>
+    <div><div class="title">FIRMWARE <i>EXPLORER</i></div><div class="tag">LEARN HOW SERVERS ARE MANAGED</div></div>
+  </div>
+  <div class="tools">
+    <label class="search"><span>⌕</span><input id="q" placeholder="Search lessons" autocomplete="off"><kbd>/</kbd></label>
+    <button id="help" class="btn ghost" title="Keyboard shortcuts">?</button>
+    <button id="theme" class="btn ghost" title="Toggle dark mode">◐</button>
+  </div>
+</header>
+<main class="app">
+  <aside class="panel lessons">
+    <div class="ph">LESSONS <span id="progress" class="muted"></span></div>
+    <div class="cats" id="cats"></div>
+    <div class="list" id="list"></div>
+  </aside>
+  <section class="panel diagram">
+    <div class="dtop">
+      <div class="seg" id="viewseg"><button data-v="net" class="on">▦ TOPOLOGY</button><button data-v="seq">☰ SEQUENCE</button></div>
+      <div class="legend" id="linklegend"></div>
+    </div>
+    <div class="canvas" id="canvas"></div>
+    <div class="tut" id="tut"></div>
+  </section>
+  <section class="panel side" id="side"></section>
+  <section class="panel flow">
+    <div class="ftop">
+      <div class="ph">MESSAGE FLOW <span class="legend" id="protolegend"></span></div>
+      <div class="ctrls">
+        <select id="speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select>
+        <button class="btn" id="back" title="Previous (←)">‹</button>
+        <button class="btn primary" id="play">▶ PLAY</button>
+        <button class="btn" id="step" title="Next (→)">STEP</button>
+        <button class="btn" id="reset" title="Restart (R)">↺</button>
+      </div>
+    </div>
+    <div class="tablewrap"><table id="tbl"><thead><tr><th>No.</th><th>Time</th><th>Source</th><th>Destination</th><th>Protocol</th><th>Info</th><th>Size</th></tr></thead><tbody></tbody></table></div>
+  </section>
+</main>
+<div class="modal" id="modal" hidden><div class="card"><h3>Keyboard shortcuts</h3>
+<table><tr><td><kbd>Space</kbd></td><td>Play / pause</td></tr><tr><td><kbd>→</kbd> / <kbd>←</kbd></td><td>Next / previous message</td></tr><tr><td><kbd>R</kbd></td><td>Restart lesson</td></tr><tr><td><kbd>V</kbd></td><td>Toggle topology / sequence</td></tr><tr><td><kbd>I</kbd></td><td>Inspect current message</td></tr><tr><td><kbd>Esc</kbd></td><td>Close inspector</td></tr><tr><td><kbd>/</kbd></td><td>Search lessons</td></tr></table>
+<p class="muted">Values tagged <b class="eg">E.G.</b> are examples that differ between systems. <span class="encs">--</span> bytes are encrypted/random. Scenarios are simplified teaching models built from public specs (IPMI 2.0, DMTF Redfish/PLDM/MCTP/NC-SI, OpenBMC); always confirm platform specifics with your team's docs.</p>
+<button class="btn primary" id="closemodal">Got it</button></div></div>
+<script src="lib.js"></script>
+<script src="lessons/platform.js"></script>
+<script src="lessons/buses.js"></script>
+<script src="lessons/mgmt.js"></script>
+<script src="lessons/firmware.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
