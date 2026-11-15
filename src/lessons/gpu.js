@@ -33,7 +33,7 @@
       { id: 'nvs', type: 'device', label: 'NVLink switches', sub: '+ PCIe retimers', x: 885, y: 260, tag: 'SWITCH' },
     ],
     links: [
-      { a: 'adm', b: 'bmc', kind: 'lan', label: 'OOB HTTPS' }, { a: 'bmc', b: 'hmc', kind: 'usb', label: 'USB-Eth + I²C' }, { a: 'bmc', b: 'cpu', kind: 'espi', label: 'eSPI' },
+      { a: 'adm', b: 'bmc', kind: 'lan', label: 'OOB HTTPS', t: .7 }, { a: 'bmc', b: 'hmc', kind: 'usb', label: 'USB-Eth + I²C' }, { a: 'bmc', b: 'cpu', kind: 'espi', label: 'eSPI' },
       { a: 'hmc', b: 'cpld', kind: 'i2c', label: 'I²C/GPIO' }, { a: 'hmc', b: 'g1', kind: 'mctp', label: 'I²C / MCTP' }, { a: 'hmc', b: 'g8', kind: 'mctp' }, { a: 'hmc', b: 'nvs', kind: 'mctp', label: 'MCTP' },
       { a: 'cpu', b: 'g1', kind: 'pcie', label: 'PCIe (data)' }, { a: 'g1', b: 'g8', kind: 'pcie', label: 'NVLink' },
     ],
